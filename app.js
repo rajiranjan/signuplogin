@@ -124,113 +124,109 @@ app.post("/register", async (request, response) => {
     }
   });
 
+//product page backend
 
-
-
-
-
-
-// login endpoint
-
-// app.post("/login", async (request, response) => {
-//   try {
-//     const { email, password } = request.body;
-
-//     // check if email exists
-//     const user = await User.findOne({ email });
-
-//     if (!user) {
-//       return response.status(404).send({ message: "Email not found" });
-//     }
-
-//     // compare the password entered and the hashed password found
-//     const passwordCheck = await bcrypt.compare(password, user.password);
-
-//     // if the passwords do not match
-//     if (!passwordCheck) {
-//       return response.status(400).send({ message: "Passwords do not match" });
-//     }
-
-//     // create JWT token
-//     const token = jwt.sign(
-//       {
-//         userId: user._id,
-//         userEmail: user.email,
-//       },
-//       "RANDOM-TOKEN",
-//       { expiresIn: "24h" }
-//     );
-
-//     // return success response
-//     response.status(200).send({
-//       message: "Login Successful",
-//       email: user.email,
-//       token,
-//     });
-//   } catch (error) {
-//     response.status(500).send({ message: "Internal server error" });
-//   }
-// });
-
-
-
-// app.post("/login", (request, response) => {//this is the right code
-//   // check if email exists
-//   User.findOne({ email: request.body.email })
-//   console.log(user)
-//     // if email exists
-//     .then((user) => {
-//       console.log(user);
-//       // compare the password entered and the hashed password found
-//       bcrypt
-//         .compare(password, user.password)
-
-//         // if the passwords match
-//         .then((passwordCheck) => {
-
-//           // check if password matches
-//           if(!passwordCheck) {
-//             return response.status(400).send({
-//               message: "Passwords does not match",
-//               error,
-//             });
-//           }
-
-//           //   create JWT token
-//           const token = jwt.sign(
-//             {
-//               userId: user._id,
-//               userEmail: user.email,
-//             },
-//             "RANDOM-TOKEN",
-//             { expiresIn: "24h" }
-//           );
-
-//           //   return success response
-//           response.status(200).send({
-//             message: "Login Successful",
-//             email: user.email,
-//             token,
-//           });
-//         })
-//         // catch error if password does not match
-//         .catch((error) => {
-//           response.status(400).send({
-//             message: "Passwords does not match",
-//             error,
-//           });
-//         });
-//     })
-//     // catch error if email does not exist
-//     .catch((e) => {
-//       response.status(404).send({
-//         message: "Email not found",
-//         e,
-//       });
-//     });
-// });
-
+  const productSchema = new mongoose.Schema({
+    name: String,
+    price: Number,
+    description: String,
+    image: String,
+  });
   
+  const Product = mongoose.model('Product', productSchema);
+
+// Create a product
+app.post('/products', (req, res) => {
+  const { name, price, description } = req.body;
+  const product = new Product({
+    name,
+    price,
+    description,
+  });
+  product.save()
+    .then(savedProduct => {
+      res.status(201).send(savedProduct);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).send(err);
+    });
+});
+
+
+app.get('/products', (req, res) => {
+  Product.find({})
+    .then((foundProducts) => {
+      res.send(foundProducts);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
+});
+
+
+
+// Read a single product
+app.get("/products/:id", (req, res) => {
+  const { id } = req.params;
+  Product.findById(id)
+    .then((foundProduct) => {
+      if (foundProduct) {
+        res.send(foundProduct);
+      } else {
+        res.status(404).send();
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
+});
+
+
+
+// Update a product
+app.patch('/products/:id', (req, res) => {
+  const { id } = req.params;
+  Product.findByIdAndUpdate(id, req.body, { new: true })
+    .then((updatedProduct) => {
+      if (updatedProduct) {
+        res.send(updatedProduct);
+      } else {
+        res.status(404).send();
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
+});
+
+
+
+// Delete a product
+app.delete('/products/:id', (req, res) => {
+  const { id } = req.params;
+  Product.findByIdAndDelete(id)
+    .then((deletedProduct) => {
+      if (deletedProduct) {
+        res.send(deletedProduct);
+      } else {
+        res.status(404).send();
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
+});
+
+
+
+
+
+
   app.get("/free-endpoint", (request, response) => {
     response.json({ message: "You are free to access me anytime" });
   });
